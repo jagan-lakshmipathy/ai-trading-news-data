@@ -1,0 +1,22 @@
+FROM nvidia/cuda:12.8.1-runtime-ubuntu22.04
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.11 python3.11-distutils curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -s /usr/bin/python3.11 /usr/bin/python \
+    && curl -sS https://bootstrap.pypa.io/get-pip.py | python
+
+COPY requirements.txt .
+# cu121 has no sm_120 (Blackwell/RTX 50-series) kernels; cu128 build is required for these GPUs
+RUN python -m pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu128 \
+    && python -m pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+VOLUME ["/app/data"]
+
+# BENZINGA_API_KEY must be supplied at runtime (env var or .env mounted into /app)
+ENTRYPOINT ["python"]
+CMD ["run_5year_complete.py"]

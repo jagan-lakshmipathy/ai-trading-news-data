@@ -3,6 +3,7 @@ Encode Benzinga news data using FinBERT embeddings
 Supports both sentence-transformers and raw FinBERT extraction
 """
 
+import time
 import pandas as pd
 import numpy as np
 import torch
@@ -309,6 +310,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     # Encode
+    start_ms = time.perf_counter()
     encode_csv_to_sqlite(
         csv_path=args.csv,
         db_path=args.db,
@@ -317,6 +319,8 @@ if __name__ == '__main__':
         batch_size=args.batch_size,
         use_float16=not args.no_float16
     )
+    elapsed_ms = (time.perf_counter() - start_ms) * 1000
+    print(f"Encoding completed in {elapsed_ms:.2f} ms")
     
     # Test if query provided
     if args.test_query:
